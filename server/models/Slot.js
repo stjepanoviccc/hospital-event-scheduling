@@ -1,5 +1,5 @@
 const mongoose = require("mongoose");
-const { SlotStatus } = require("./enums/SlotStatus");
+const SlotStatus = require("./enums/SlotStatus");
 
 const SlotSchema = new mongoose.Schema({
     doctor: {type: mongoose.Schema.Types.ObjectId, ref: "User", required: true},

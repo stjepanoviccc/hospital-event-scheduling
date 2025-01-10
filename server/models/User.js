@@ -1,5 +1,5 @@
 const mongoose = require("mongoose");
-const { UserRole } = require("../UserRole");
+const UserRole = require("./enums/UserRole");
 
 const UserSchema = new mongoose.Schema({
   firstName: { type: String, required: true },

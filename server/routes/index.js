@@ -3,36 +3,34 @@ const authController = require("../controllers/authController");
 const userController = require("../controllers/userController");
 const eventController = require("../controllers/eventController");
 const slotController = require("../controllers/slotController");
-const { protect } = require("../middleware/authMiddleware");
+const rbacMiddleware = require("../middleware/rbacMiddleware");
+const eventValidationMiddleware = require("../middleware/eventValidationMiddleware");
+const registerValidationMiddleware = require("../middleware/registerValidationMiddleware");
+const slotValidationMiddleware = require("../middleware/slotValidationMiddleware");
+const UserRole = require("../models/enums/UserRole");
 
 const route = express.Router();
-const API_V1 = "/api/v1";
-const AUTH = "/auth";
-const USERS = "/users";
-const EVENTS = "/events";
-const SLOTS = "/slots";
+const { PATIENT, DOCTOR } = UserRole;
 
 // auth
-route.post(`${API_V1}${AUTH}/login`, authController.login);
-route.post(`${API_V1}${AUTH}/register`, authController.register);
+route.post(`/auth/login`, authController.login);
+route.post(`/auth/register`, registerValidationMiddleware, authController.register);
 
 // user
-route.get(`${API_V1}${USERS}/:userId`, userController.findUserById);
+// route.get(`/users/:userId`, rbacMiddleware(), userController.findUserById);
 
 // event
-route.get(`${API_V1}${EVENTS}/:eventId`, protect(), eventController.findEventById
-);
-route.get(`${API_V1}${EVENTS}/patient/:patientId`, protect(),eventController.findEventsByPatient
-);
-route.get(`${API_V1}${EVENTS}/doctor/:doctorId`, protect(), eventController.findEventsByDoctor);
-route.post(`${API_V1}${EVENTS}`, protect(), eventController.create);
-route.put(`${API_V1}${EVENTS}`, protect(), eventController.updateStatus);
+route.get(`/events/:eventId`, rbacMiddleware([DOCTOR, PATIENT]
+), eventController.findEventById);
+route.get(`/events/patient/:patientId`, rbacMiddleware([PATIENT]),eventController.findEventsByPatient);
+route.get(`/events/doctor/:doctorId`, rbacMiddleware([DOCTOR]), eventController.findEventsByDoctor);
+route.post(`/events`, rbacMiddleware([PATIENT]), eventValidationMiddleware, eventController.create);
+route.put(`/events`, rbacMiddleware([DOCTOR]), eventValidationMiddleware, eventController.updateStatus);
 
 // slot
-route.get(
-  `${API_V1}${SLOTS}/doctor/:doctorId`, protect(), slotController.findAvailableSlots
-);
-route.post(`${API_V1}${SLOTS}`, protect(), slotController.create);
-route.put(`${API_V1}${SLOTS}`, protect(), slotController.updateStatus);
+route.get(`/slots/doctor/:doctorId`, rbacMiddleware([DOCTOR, PATIENT]), slotController.findAvailableSlots);
+route.post(`/slots`, rbacMiddleware([DOCTOR]
+), slotValidationMiddleware, slotController.create);
+route.put(`/slots`, rbacMiddleware([DOCTOR]), slotValidationMiddleware, slotController.updateStatus);
 
 module.exports = route;

@@ -4,8 +4,7 @@ exports.findById = async (id) => {
     try {
         return await User.findById(id);
     } catch (error) {
-        console.error("UserService.findById:", error);
-        throw error;
+        throw new Error("Error while fetching user by id " + error.message);
     }
 }
 

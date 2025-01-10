@@ -6,8 +6,7 @@ exports.register = async (user) => {
     const newUser = new User(user);
     return await newUser.save();
   } catch (error) {
-    console.error("UserService.register:", error);
-    throw error;
+    throw new Error("Failed to register user: " + error.message);
   }
 };
 
@@ -22,8 +21,7 @@ exports.login = async (username, password) => {
 
     return { user, accessToken, refreshToken };
   } catch (error) {
-    console.error("UserService.login:", error);
-    throw error;
+    throw new Error("Failed to login: " + error.message);
   }
 };
 
@@ -46,9 +44,9 @@ exports.decodeToken = (token) => {
 exports.verifyRefreshToken = (token) => {
   try {
     const decoded = jwt.verify(token, process.env.JWT_REFRESH_SECRET);
-    
+
     return decoded.username;
   } catch (error) {
-    throw new Error("Invalid refresh token");
+    throw new Error("Invalid refresh token: " + error.message);
   }
 };

@@ -4,21 +4,39 @@ services:
   server:
     build: ./server
     ports:
-      - "3000:3000"
+      - "${SERVER_PORT}:${SERVER_PORT}"
     depends_on:
       - mongo
+    env_file:
+      - ./server/config.env
+    volumes:
+      - ./server:/app
+    networks:
+      - hesnetwork
 
   client:
     build: ./client
     ports:
-      - "80:80"
+      - "${CLIENT_PORT}:${CLIENT_PORT}"
+    volumes:
+      - ./client:/app
+    env_file:
+      - ./client/.env
+    networks:
+      - hesnetwork
 
   mongo:
     image: mongo
     ports:
-      - "27017:27017"
+      - "${MONGO_PORT}:${MONGO_PORT}"
     volumes:
       - mongo-data:/data/db
+    networks:
+      - hesnetwork
 
 volumes:
   mongo-data:
+
+networks:
+  hesnetwork:
+    driver: bridge
