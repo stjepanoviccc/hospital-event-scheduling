@@ -1,4 +1,5 @@
 const express = require('express')
+const path = require('path');
 const dotenv = require('dotenv')
 const cors = require('cors')
 const morgan = require('morgan')
@@ -30,11 +31,17 @@ app.use(cors(corsOptions))
 
 const limiter = rateLimit({
   windowMs: 15 * 60 * 1000, 
-  max: 200, 
+  max: 300, 
 })
 app.use(limiter)
 
 app.use('/api/v1', route)
+
+app.use(express.static(path.join(__dirname, 'dist')));
+
+app.get('*', (req, res) => {
+  res.sendFile(path.join(__dirname, 'dist', 'index.html'));
+});
 
 app.use((req, res) => {
   res.status(404).json({ error: 'Route not found' })
@@ -59,5 +66,5 @@ process.on('SIGTERM', () => {
 })
 
 app.listen(port, () => {
-  console.log(`Server is running on http://localhost:${port}`)
+  console.log(`Server is running on port:${port}`)
 })

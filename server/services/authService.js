@@ -6,18 +6,24 @@ exports.register = async (user) => {
     const newUser = new User(user);
     return await newUser.save();
   } catch (error) {
+    if (error.code === 11000) {
+      throw new Error("Email already exists");
+    }
     throw new Error("Failed to register user: " + error.message);
   }
 };
 
-exports.login = async (username, password) => {
+exports.login = async (email, password) => {
   try {
-    const user = await User.findOne({ username });
+    const user = await User.findOne({ email });
+    if (!user) {
+      throw new Error("Email doesn't exist");
+    }
     if (!user || !(await user.matchPassword(password))) {
       throw new Error("Invalid credentials");
     }
-    const accessToken = generateToken(user.username);
-    const refreshToken = generateRefreshToken(user.username);
+    const accessToken = generateToken(user.email);
+    const refreshToken = generateRefreshToken(user.email);
 
     return { user, accessToken, refreshToken };
   } catch (error) {
@@ -25,28 +31,14 @@ exports.login = async (username, password) => {
   }
 };
 
-const generateToken = (username) => {
-  return jwt.sign({ username }, process.env.JWT_SECRET, {
+const generateToken = (email) => {
+  return jwt.sign({ email }, process.env.JWT_SECRET, {
     expiresIn: process.env.JWT_EXPIRE,
   });
 };
 
-const generateRefreshToken = (username) => {
-  return jwt.sign({ username }, process.env.JWT_REFRESH_SECRET, {
+const generateRefreshToken = (email) => {
+  return jwt.sign({ email }, process.env.JWT_REFRESH_SECRET, {
     expiresIn: process.env.JWT_REFRESH_EXPIRE,
   });
-};
-
-exports.decodeToken = (token) => {
-  return jwt.verify(token, process.env.JWT_SECRET).username;
-};
-
-exports.verifyRefreshToken = (token) => {
-  try {
-    const decoded = jwt.verify(token, process.env.JWT_REFRESH_SECRET);
-
-    return decoded.username;
-  } catch (error) {
-    throw new Error("Invalid refresh token: " + error.message);
-  }
 };

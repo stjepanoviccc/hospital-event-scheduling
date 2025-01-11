@@ -1,7 +1,7 @@
 const jwt = require('jsonwebtoken');
 const User = require("../models/User");
 
-const rbacMiddleware = (requiredRoles = []) => {
+const authMiddleware = (requiredRoles = []) => {
   return async (req, res, next) => {
     let token;
     if (req.headers.authorization && req.headers.authorization.startsWith('Bearer')) {
@@ -47,4 +47,4 @@ const rbacMiddleware = (requiredRoles = []) => {
   };
 };
 
-module.exports = rbacMiddleware;
+module.exports = authMiddleware;
