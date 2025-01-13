@@ -1,34 +1,35 @@
 import { createSlice, PayloadAction } from '@reduxjs/toolkit';
-import { User } from '../models/User';
 import JwtService from '../services/jwtService'; 
+import { UserRole } from '../models/enums/UserRole';
 
 interface AuthState {
-  user: User | null;
   isLoggedIn: boolean;
+  role: UserRole | null;
 }
 
 const initialState: AuthState = {
-  user: null,
-  isLoggedIn: false
+  isLoggedIn: false,
+  role: null,
 };
 
 const authSlice = createSlice({
   name: 'auth',
   initialState,
   reducers: {
-    setUser: (state, action: PayloadAction<User | null>) => {
-      state.user = action.payload;
-    },
     setIsLoggedIn: (state, action: PayloadAction<boolean>) => {
       state.isLoggedIn = action.payload;
     },
+    setRole: (state, action: PayloadAction<UserRole>) => {
+      state.role = action.payload;
+    },
     logout: (state) => {
-      state.user = null;
       state.isLoggedIn = false;
-      JwtService.clearTokens(); 
+      state.role = null;
+      JwtService.clearTokens();
+      window.location.href = "/login"; 
     },
   },
 });
 
-export const { setUser, setIsLoggedIn, logout } = authSlice.actions;
+export const { setIsLoggedIn, setRole, logout } = authSlice.actions;
 export default authSlice.reducer;

@@ -5,7 +5,7 @@ import { validateUser } from "../../../utils/validators/userValidator";
 import { UserRole } from "../../../models/enums/UserRole";
 import { register } from "../../../services/authService";
 import { User } from "../../../models/User";
-import { handleAxiosError } from "../../../services/errorService";
+import { handleCustomError } from "../../../services/customErrorService/errorService";
 
 const RegisterForm: React.FC = () => {
   const [formData, setFormData] = useState<User>({
@@ -67,7 +67,7 @@ const RegisterForm: React.FC = () => {
       setErrorMsg("");
       navigate("/login");
     } catch (error) {
-      const errorMsg = handleAxiosError(error);
+      const errorMsg = handleCustomError(error);
       setErrorMsg(errorMsg);
     }
   };

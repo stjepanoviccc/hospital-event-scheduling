@@ -1,7 +1,9 @@
+import { UserRole } from "../../models/enums/UserRole";
+
 const JwtService = {
     ACCESS_TOKEN_KEY: 'accessToken',
     REFRESH_TOKEN_KEY: 'refreshToken',
-    USER_KEY: 'user',
+    ROLE_KEY: 'role',
   
     getAccessToken(): string | null {
       return localStorage.getItem(this.ACCESS_TOKEN_KEY)
@@ -9,6 +11,10 @@ const JwtService = {
   
     getRefreshToken(): string | null {
       return localStorage.getItem(this.REFRESH_TOKEN_KEY)
+    },
+
+    getRole(): string | null {
+      return localStorage.getItem(this.ROLE_KEY);
     },
   
     setAccessToken(token: string): void {
@@ -18,10 +24,15 @@ const JwtService = {
     setRefreshToken(token: string): void {
       localStorage.setItem(this.REFRESH_TOKEN_KEY, token)
     },
+
+    setRole(role: UserRole): void {
+      localStorage.setItem(this.ROLE_KEY, role);
+    },
   
     clearTokens(): void {
-      localStorage.removeItem(this.ACCESS_TOKEN_KEY)
-      localStorage.removeItem(this.REFRESH_TOKEN_KEY)
+      localStorage.removeItem(this.ACCESS_TOKEN_KEY);
+      localStorage.removeItem(this.REFRESH_TOKEN_KEY);
+      localStorage.removeItem(this.ROLE_KEY);
     }
   };
   

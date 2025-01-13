@@ -1,46 +1,41 @@
-import Axios, { AxiosError, AxiosRequestConfig, InternalAxiosRequestConfig } from 'axios'
-import { refreshAccessToken } from '../../services/authService'
+import Axios, { AxiosResponse, InternalAxiosRequestConfig } from 'axios'
 import JwtService from '../../services/jwtService'
 
-interface AxiosRequestConfigWithRetry extends AxiosRequestConfig {
-  _retry?: boolean
-}
-
 export const axios = Axios.create({
-  baseURL: "http://localhost:80",
+  baseURL: import.meta.env.VITE_BACKEND_URL,
   withCredentials: true
 })
 
 const onRequest = (config: InternalAxiosRequestConfig): InternalAxiosRequestConfig => {
-    const accessToken = JwtService.getAccessToken()
-    const refreshToken = JwtService.getRefreshToken()
-    if (accessToken) {
-      config.headers = config.headers || {}
-      config.headers['Authorization'] = `Bearer ${accessToken}`
-      config.headers['Cache-Control'] = 'no-cache'
-      config.headers['x-refresh-token'] = refreshToken
-    }
-    return config
-  }
+  const accessToken = JwtService.getAccessToken()
+  const refreshToken = JwtService.getRefreshToken()
 
-const onRequestError = async (error: AxiosError): Promise<AxiosError> => {
-  const originalRequest = error.config as AxiosRequestConfigWithRetry
-  if (error.response && error.response.status === 403 && !originalRequest._retry) {
-    originalRequest._retry = true
-    try {
-        const newAccessToken = await refreshAccessToken()
-        
-        JwtService.setAccessToken(newAccessToken!)
-        axios.defaults.headers.common['Authorization'] = 'Bearer ' + newAccessToken
-  
-        return axios(originalRequest)
-      } catch (error) {
-        return Promise.reject(error)
-      }
+  if (accessToken) {
+    config.headers = config.headers || {}
+    config.headers['Authorization'] = `Bearer ${accessToken}`
+    config.headers['Cache-Control'] = 'no-cache'
+    config.headers['x-refresh-token'] = refreshToken
   }
-  return Promise.reject(error)
+  return config
 }
 
-axios.interceptors.request.use(onRequest, onRequestError)
+const onResponse = async (response: AxiosResponse): Promise<AxiosResponse> => {
+  const newAccessToken = response.headers['x-access-token'];
+  const newRefreshToken = response.headers['x-refresh-token'];
+
+  if (newAccessToken) {
+    JwtService.setAccessToken(newAccessToken);
+    axios.defaults.headers.common['Authorization'] = `Bearer ${newAccessToken}`;
+  }
+  if (newRefreshToken) {
+    JwtService.setRefreshToken(newRefreshToken);
+    axios.defaults.headers.common['x-refresh-token'] = newRefreshToken;
+  }
+
+  return response;
+}
+
+axios.interceptors.request.use(onRequest, (error) => Promise.reject(error))
+axios.interceptors.response.use(onResponse, (error) => Promise.reject(error))
 
 export default axios

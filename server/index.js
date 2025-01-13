@@ -13,7 +13,7 @@ const app = express()
 dotenv.config({ path: 'config.env' })
 
 const port = process.env.PORT || 3000
-const client = process.env.CLIENT || 'http://localhost:80'
+const client = process.env.CLIENT || 'http://127.0.0.1:80'
 
 connectDB()
 
@@ -31,7 +31,7 @@ app.use(cors(corsOptions))
 
 const limiter = rateLimit({
   windowMs: 15 * 60 * 1000, 
-  max: 300, 
+  max: 500, 
 })
 app.use(limiter)
 

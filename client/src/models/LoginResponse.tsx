@@ -1,8 +1,8 @@
-import { User } from "./User";
+import { UserRole } from "./enums/UserRole";
 
 export interface LoginResponse {
+    role: UserRole,
     accessToken: string,
     refreshToken: string,
-    user: User
   }
   

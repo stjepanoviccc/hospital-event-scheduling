@@ -3,23 +3,23 @@
 @tailwind utilities;
 
 * {
-  @apply font-sans;
+  @apply font-sans text-secondaryColor;
 }
 
 .h1 {
-  @apply text-4xl font-bold text-secondaryColor mb-4;
+  @apply text-4xl font-bold mb-4;
 }
 
 .h2 {
-  @apply text-3xl font-semibold text-secondaryColor mb-3;
+  @apply text-3xl font-semibold mb-3;
 }
 
 .h3 {
-  @apply text-2xl font-medium text-secondaryColor mb-2;
+  @apply text-2xl font-medium mb-2;
 }
 
 .p {
-  @apply text-secondaryColor text-base leading-relaxed;
+  @apply text-base leading-relaxed;
 }
 
 .button {
@@ -32,4 +32,16 @@
 
 .input {
   @apply w-full py-2 px-4 border border-gray-300 rounded-md text-base text-primaryColor focus:outline-none focus:ring-2 focus:ring-primaryColor focus:border-transparent transition duration-300;
+}
+
+.table-container {
+  @apply bg-white p-6 rounded-lg shadow-md;
+}
+
+.table {
+  @apply table-auto w-full border-collapse lg:overflow-x-visible;
+}
+
+.table-th {
+  @apply text-left text-primaryColor font-bold  px-4 py-2;
 }

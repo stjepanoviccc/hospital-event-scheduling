@@ -1,4 +1,6 @@
+const userService = require("../services/userService");
 const eventService = require("../services/eventService");
+const UserRole = require("../models/enums/UserRole");
 
 exports.findEventById = async (req, res, next) => {
   try {
@@ -13,20 +15,16 @@ exports.findEventById = async (req, res, next) => {
   }
 };
 
-exports.findEventsByPatient = async (req, res, next) => {
+exports.findEventsByRole = async (req, res, next) => {
   try {
-    const { patientId } = req.params;
-    const events = await eventService.findEventsByPatient(patientId);
-    res.status(200).json({ events });
-  } catch (error) {
-    next(error);
-  }
-};
-
-exports.findEventsByDoctor = async (req, res, next) => {
-  try {
-    const { doctorId } = req.params;
-    const events = await eventService.findEventsByDoctor(doctorId);
+    const token = req.headers.authorization.split(' ')[1];
+    const user = await userService.findUserFromToken(token);
+    let events;
+    if(user.role === UserRole.DOCTOR) {
+      events = await eventService.findEventsByDoctor(user._id);
+    } else if(user.role === UserRole.PATIENT) {
+      events = await eventService.findEventsByPatient(user._id);
+    }
     res.status(200).json({ events });
   } catch (error) {
     next(error);
@@ -35,8 +33,10 @@ exports.findEventsByDoctor = async (req, res, next) => {
 
 exports.create = async (req, res, next) => {
   try {
-    const { slotId, patientId } = req.body;
-    const newEvent = await eventService.create(slotId, patientId);
+    const { slotId } = req.body;
+    const token = req.headers.authorization.split(' ')[1];
+    const patient = await userService.findUserFromToken(token);
+    const newEvent = await eventService.createEvent(slotId, patient._id);
     res.status(201).json({ event: newEvent });
   } catch (error) {
     next(error);

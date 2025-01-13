@@ -1,5 +1,5 @@
 const Event = require("../models/Event");
-const SlotService = require("./slotService");
+const slotService = require("./slotService");
 const EventStatus = require("../models/enums/EventStatus");
 const SlotStatus = require("../models/enums/SlotStatus");
 
@@ -13,40 +13,52 @@ exports.findById = async (id) => {
 
 exports.findEventsByPatient = async (patientId) => {
   try {
-    return await Event.find({ patient: patientId }).populate("slot");
+    const events = await Event.find({ patient: patientId})
+      .select("status")
+      .populate({path: "slot", select: "startTime endTime doctor", populate: { path: "doctor", select: "_id email firstName lastName" }})
+      .sort({ "slot.startTime": 1 })  
+      .exec();
+
+    const result = {
+      PENDING: events.filter((event) => event.status === EventStatus.PENDING) || [],
+      APPROVED: events.filter((event) => event.status === EventStatus.APPROVED) || [],
+      REJECTED: events.filter((event) => event.status === EventStatus.REJECTED) || [],
+    };
+    
+    return result;
   } catch (error) {
     throw new Error("Failed to find events by patient: " + error.message);
   }
 };
 
-exports.findEventsByPatientAndByStatusPending = async (patientId) => {
-  try {
-    return await Event.find({patient: patientId, status: EventStatus.PENDING })
-      .populate("slot")
-      .populate("doctor")
-      .exec();
-  } catch (error) {
-    throw new Error("Failed to find events by patient and by status PENDING: " + error.message);
-  }
-}
-
 exports.findEventsByDoctor = async (doctorId) => {
   try {
-    return await Event.find({ doctor: doctorId})
-      .populate("slot")
-      .populate("patient")
-      .exec();
+    let slots = await slotService.findAllSlotsByDoctor(doctorId);
+    const slotIds = slots.map(slot => slot._id);
+
+    let events = await Event.find({ "slot": { $in: slotIds }, "status": { $ne: "REJECTED" } })
+      .populate("slot", "startTime endTime status")
+      .populate("patient", "firstName lastName")
+
+    return events;
   } catch (error) {
     throw new Error("Failed to find events by doctor: " + error.message);
   }
 };
 
+
 exports.createEvent = async (slotId, patientId) => {
   try {
-    const slot = await Slot.findById(slotId).session(session);
+    const slot = await slotService.findById(slotId);
+
     if (slot.status === SlotStatus.BOOKED) {
-      throw new Error("This slot is already booked by another patient.");
+      throw new Error("This slot is already booked.");
     }
+    const existingEvent = await Event.findOne({ slot: slotId, patient: patientId });
+    if (existingEvent) {
+      throw new Error("You already sent request for this slot. Please be patient and wait for the answer.");
+    }
+    
     const newEvent = new Event({
       slot: slotId,
       patient: patientId,
@@ -59,30 +71,26 @@ exports.createEvent = async (slotId, patientId) => {
 };
 
 exports.updateEventStatus = async (eventId, status) => {
-  const session = await mongoose.startSession();
-  session.startTransaction();
-
   try {
-    const event = await Event.findById(eventId).session(session);
+    const event = await Event.findById(eventId);
+    const slot = await slotService.findById(event.slot._id);
     if (status === EventStatus.APPROVED) {
-      const slot = await Slot.findById(event.slot).session(session);
       if (slot.status === SlotStatus.BOOKED) {
         throw new Error("Slot is already booked by another patient.");
       }
-      await SlotService.updateSlot(event.slot, SlotStatus.BOOKED, session);
+      await slotService.updateSlot(event.slot, SlotStatus.BOOKED);
       await Event.updateMany(
         { slot: event.slot, status: EventStatus.PENDING },
-        { $set: { status: EventStatus.REJECTED } },
-        { session }
+        { $set: { status: EventStatus.REJECTED } }
       );
     }
-    await Event.findByIdAndUpdate(eventId, { status }, { session });
-    await session.commitTransaction();
-    return await Event.findById(eventId);
+    await Event.findByIdAndUpdate(eventId, { status, doctor: slot.doctor });
+
+    return await Event.findById(eventId)
+    .select("status")
+    .populate("slot").select("_id")
+    .populate("doctor").select("_id, firstName, lastName, email")
   } catch (error) {
-    await session.abortTransaction();
     throw new Error("Failed to update event status: " + error.message);
-  } finally {
-    session.endSession();
-  }
+  } 
 };

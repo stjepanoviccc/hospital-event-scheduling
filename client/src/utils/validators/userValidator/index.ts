@@ -63,7 +63,7 @@ export const validateUser = (userData: User): ValidationError => {
   const emailError = validateEmail(userData.email);
   if (emailError) errors.email = emailError;
 
-  const passwordError = validatePassword(userData.password);
+  const passwordError = validatePassword(userData.password!);
   if (passwordError) errors.password = passwordError;
 
   const roleError = validateRole(userData.role);

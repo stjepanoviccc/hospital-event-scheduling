@@ -22,10 +22,11 @@ exports.login = async (email, password) => {
     if (!user || !(await user.matchPassword(password))) {
       throw new Error("Invalid credentials");
     }
+    const role = user.role;
     const accessToken = generateToken(user.email);
     const refreshToken = generateRefreshToken(user.email);
 
-    return { user, accessToken, refreshToken };
+    return { role, accessToken, refreshToken };
   } catch (error) {
     throw new Error("Failed to login: " + error.message);
   }

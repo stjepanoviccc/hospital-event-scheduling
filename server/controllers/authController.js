@@ -12,11 +12,11 @@ exports.register = async (req, res, next) => {
 exports.login = async (req, res, next) => {
   try {
     const { email, password } = req.body;
-    const { user, accessToken, refreshToken } = await authService.login(
+    const { role, accessToken, refreshToken } = await authService.login(
       email,
       password
     );
-    res.status(200).json({ user, accessToken, refreshToken });
+    res.status(200).json({ role, accessToken, refreshToken });
   } catch (error) {
     next(error);
   }

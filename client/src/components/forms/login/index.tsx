@@ -2,7 +2,7 @@ import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import Button from "../../ui/button";
 import { validateLogin } from "../../../utils/validators/userValidator";
-import { handleAxiosError } from "../../../services/errorService";
+import { handleCustomError } from "../../../services/customErrorService/errorService";
 import { login } from "../../../services/authService";
 import { useDispatch } from "react-redux";
 
@@ -47,7 +47,7 @@ const LoginForm: React.FC = () => {
       setErrorMsg("");
       navigate("/");
     } catch (error) {
-      const errorMsg = handleAxiosError(error);
+      const errorMsg = handleCustomError(error);
       setErrorMsg(errorMsg);
     }
   };

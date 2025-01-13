@@ -3,10 +3,6 @@ const SlotStatus = require("../models/enums/SlotStatus");
 const slotValidationMiddleware = (req, res, next) => {
   const { doctor, startTime, endTime, status } = req.body;
 
-  if (!doctor) {
-    return res.status(400).json({ error: "Doctor is required" });
-  }
-
   if (!startTime || isNaN(Date.parse(startTime))) {
     return res.status(400).json({ error: "Valid start time is required" });
   }

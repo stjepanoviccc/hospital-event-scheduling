@@ -1,30 +1,12 @@
-import axios from "axios";
+import axios from "../../config/axiosConfig";
 import JwtService from "../jwtService";
 import { LoginResponse } from "../../models/LoginResponse";
 import { LoginRequest } from "../../models/LoginRequest";
 import { User } from "../../models/User";
 import { Dispatch } from "redux";
-import { setUser, setIsLoggedIn } from "../../store/authSlice";
+import { setIsLoggedIn, setRole } from "../../store/authSlice";
 
 const baseUrl = '/api/v1/auth';
-
-export const refreshAccessToken = async (): Promise<string> => {
-  const refreshToken = JwtService.getRefreshToken();
-
-  if (!refreshToken) {
-    throw new Error("No refresh token found");
-  }
-
-  try {
-    const response = await axios.post(`${baseUrl}/refresh-token`, { refreshToken });
-    const newAccessToken = response.data.accessToken;
-    JwtService.setAccessToken(newAccessToken);
-    return newAccessToken;
-  } catch (error) {
-    console.error("Error refreshing access token:", error);
-    throw error;
-  }
-};
 
 export const register = async (registerData: User): Promise<User> => {
   try {
@@ -42,15 +24,16 @@ export const login = async (
 ): Promise<LoginResponse> => {
   try {
     const response = await axios.post(`${baseUrl}/login`, loginData);
-    const { accessToken, refreshToken, user: userData } = response.data;
+    const { role, accessToken, refreshToken} = response.data;
 
     JwtService.setAccessToken(accessToken);
     JwtService.setRefreshToken(refreshToken);
+    JwtService.setRole(role);
 
-    dispatch(setUser(userData));
     dispatch(setIsLoggedIn(true));
+    dispatch(setRole(role));
 
-    return { user: userData, accessToken, refreshToken };
+    return { role, accessToken, refreshToken };
   } catch (error) {
     console.error("Error during login:", error);
     throw error;

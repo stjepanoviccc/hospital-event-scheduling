@@ -1,9 +1,9 @@
 const EventStatus = require("../models/enums/EventStatus");
 
 const eventValidationMiddleware = (req, res, next) => {
-  const { slot, patient, status } = req.body;
+  const { slotId, patient, status } = req.body;
 
-  if (!slot) {
+  if (slotId && !mongoose.Types.ObjectId.isValid(slotId)) {
     return res.status(400).json({ error: "Slot is required" });
   }
 
