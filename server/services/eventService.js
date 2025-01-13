@@ -56,6 +56,9 @@ exports.createEvent = async (slotId, patientId) => {
     }
     const existingEvent = await Event.findOne({ slot: slotId, patient: patientId });
     if (existingEvent) {
+      if (existingEvent.status == EventStatus.REJECTED) {
+        throw new Error("You are rejected.")
+      }
       throw new Error("You already sent request for this slot. Please be patient and wait for the answer.");
     }
     

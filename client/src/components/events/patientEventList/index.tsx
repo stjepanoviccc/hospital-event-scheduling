@@ -41,7 +41,7 @@ const PatientEventList = () => {
           {Object.values(groupedEvents).every((group) => group.length === 0) ? (
             <tr>
               <td colSpan={4} className="text-left py-4">
-                <p className="text-dangerColor px-4">No events available</p>
+                <p className="text-secondaryColor px-4">No events available</p>
               </td>
             </tr>
           ) : (

@@ -11,7 +11,7 @@ const DoctorEventList = () => {
   const [triggerFetch, setTriggerFetch] = useState<boolean>(false); 
 
   const groupedEvents = {
-    PENDING: events.filter((event) => event.status === EventStatus.PENDING),
+    PENDING: events.filter((event) => event.status === EventStatus.PENDING).sort((a, b) => new Date(a.slot.startTime).getTime() - new Date(b.slot.startTime).getTime()),
     APPROVED: events.filter((event) => event.status === EventStatus.APPROVED).sort((a, b) => new Date(a.slot.startTime).getTime() - new Date(b.slot.startTime).getTime()),
   };
 
@@ -53,6 +53,15 @@ const DoctorEventList = () => {
           </tr>
         </thead>
         <tbody>
+          {(groupedEvents.PENDING.length == 0 && groupedEvents.APPROVED.length == 0) && (
+            <>
+              <tr>
+                <td colSpan={5} className="text-left font-bold text-secondaryColor font-bold px-4 py-4">
+                  No events available
+                </td>
+              </tr>
+            </>
+          )}
           {groupedEvents.PENDING.length > 0 && (
             <>
               <tr>
